@@ -7,8 +7,8 @@
     "lib"
   ],
   "scripts": {
-    "start": "cpx \"src/**/*.{less,js}\" lib --watch",
-    "copy": "rm -rf lib/ && cpx \"src/**/*.{less,js}\" lib",
+    "start": "cpx \"src/**/*.{less,js,png}\" lib --watch",
+    "copy": "rm -rf lib/ && cpx \"src/**/*.{less,js,png}\" lib",
     "test": "eslint src",
     "prepublishOnly": "npm test && npm run copy"
   },

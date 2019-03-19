@@ -28,9 +28,11 @@ class Map extends Component {
 	}
 
 	componentDidMount() {
+		// initialize the base map when the component mounts
 		this.setState({
 			map: this.createMap()
 		}, () => {
+			// add in default map features
 			this.addMarkers(true);
 		});
 	}
@@ -38,18 +40,21 @@ class Map extends Component {
 	componentDidUpdate(prevProps) {
 		const { markersLayer } = this.state;
 
-		// reset markers if they are changed
+		// reset markers if they are changed (for example, via a toggle switch)
 		if(prevProps.markers.length !== this.props.markers.length) {
 			if(markersLayer) markersLayer.clearLayers();
 			this.addMarkers();
 		}
 	}
 
+	/**
+	 * Set up the basic map + add the tile layer
+	 */
 	createMap() {
 		const { mapId } = this.state,
-			{ latitude, longitude, showZoomControls, zoom } = this.props;
+			{ latitude, longitude, showZoomControls, zoom, tiles } = this.props;
 
-		if(!latitude && !longitude) return null;
+		if(!latitude || !longitude || !tiles) return null;
 
 		// create the base map
 		const map = new LeafletMap(`map-container-${mapId}`, {
@@ -61,19 +66,21 @@ class Map extends Component {
 		], zoom);
 
 		// add the base tile layer
-		const tileLayer = new LeafletTileLayer('https://www.truthfinder.com/data/tiles/{z}/{x}/{y}.png');
+		const tileLayer = new LeafletTileLayer(tiles);
 		tileLayer.addTo(map);
 
 		return map;
 	}
 
+	/**
+	 * Add the markers/features on top of the map
+	 */
 	addMarkers(setBounds) {
 		const { map } = this.state,
 			{ markers } = this.props;
 
-		// add any markers
-		let markersLayer;
 		const bounds = [];
+		let markersLayer;
 		if(markers.length > 0) {
 			markersLayer = new LeafletLayerGroup().addTo(map);
 
@@ -81,6 +88,8 @@ class Map extends Component {
 				const lat = parseFloat(m.latitude),
 					lng = parseFloat(m.longitude);
 
+				// will eventually add a way to send in custom markers. for now, it's a
+				// standard set of colored markers (blue, red, and yellow)
 				const markerIcon = new LeafletIcon({
 					iconUrl: m.icon ? require(`../../markers/${m.icon}.png`) : require('../../markers/blue.png'),
 					shadowUrl: require('../../markers/marker-shadow.png'),
@@ -104,10 +113,14 @@ class Map extends Component {
 			markersLayer,
 			bounds
 		}, () => {
+			// we only want to do this on the initial setup
 			if(setBounds) this.adjustBounds();
 		});
 	}
 
+	/**
+	 * The bounds frame the map to shwo all of the markers at once
+	 */
 	adjustBounds() {
 		const { map, bounds } = this.state,
 			{ markers } = this.props;
@@ -124,10 +137,8 @@ class Map extends Component {
 		const { mapId } = this.state,
 			{ height, width } = this.props;
 
-		const style = {
-			height: `${height}px`
-		};
-
+		// set the sizing styles
+		const style = { height: `${height}px` };
 		if(width) style.width = `${width}px`;
 
 		return (
@@ -137,6 +148,7 @@ class Map extends Component {
 }
 
 Map.propTypes = {
+	tiles: PropTypes.string.isRequired,
 	latitude: PropTypes.number.isRequired,
 	longitude: PropTypes.number.isRequired,
 	showZoomControls: PropTypes.bool,
