@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
 	Map as LeafletMap,
 	TileLayer as LeafletTileLayer,
-	featureGroup as LeafletFeatureGroup,
+	icon as LeafletIcon,
 	marker as LeafletMarker,
-	latLngBounds as LeafletBounds
+	latLngBounds as LeafletBounds,
+	layerGroup as LeafletLayerGroup
 } from 'leaflet';
 
 class Map extends Component {
@@ -14,31 +16,43 @@ class Map extends Component {
 		super(props);
 
 		this.state = {
-			map: null
+			map: null,
+			mapId: uuidv4(),
+			markersLayer: null,
+			bounds: []
 		};
 
 		this.createMap = this.createMap.bind(this);
+		this.addMarkers = this.addMarkers.bind(this);
+		this.adjustBounds = this.adjustBounds.bind(this);
 	}
 
 	componentDidMount() {
 		this.setState({
 			map: this.createMap()
+		}, () => {
+			this.addMarkers(true);
 		});
 	}
 
+	componentDidUpdate(prevProps) {
+		const { markersLayer } = this.state;
+
+		// reset markers if they are changed
+		if(prevProps.markers.length !== this.props.markers.length) {
+			if(markersLayer) markersLayer.clearLayers();
+			this.addMarkers();
+		}
+	}
+
 	createMap() {
-		const {
-			latitude,
-			longitude,
-			markers,
-			showZoomControls,
-			zoom
-		} = this.props;
+		const { mapId } = this.state,
+			{ latitude, longitude, showZoomControls, zoom } = this.props;
 
 		if(!latitude && !longitude) return null;
 
 		// create the base map
-		const map = new LeafletMap('map-container', {
+		const map = new LeafletMap(`map-container-${mapId}`, {
 			scrollWheelZoom: false,
 			zoomControl: showZoomControls
 		}).setView([
@@ -50,42 +64,74 @@ class Map extends Component {
 		const tileLayer = new LeafletTileLayer('https://www.truthfinder.com/data/tiles/{z}/{x}/{y}.png');
 		tileLayer.addTo(map);
 
+		return map;
+	}
+
+	addMarkers(setBounds) {
+		const { map } = this.state,
+			{ markers } = this.props;
+
 		// add any markers
-		let featureGroup;
-		const boundsArr = [];
+		let markersLayer;
+		const bounds = [];
 		if(markers.length > 0) {
-			featureGroup = new LeafletFeatureGroup().addTo(map);
+			markersLayer = new LeafletLayerGroup().addTo(map);
 
 			markers.forEach(m => {
 				const lat = parseFloat(m.latitude),
 					lng = parseFloat(m.longitude);
 
-				/* TODO: take in a `markerType` to show different icons */
-				const marker = new LeafletMarker([lat, lng]).addTo(map);
+				const markerIcon = new LeafletIcon({
+					iconUrl: m.icon ? require(`../../markers/${m.icon}.png`) : require('../../markers/blue.png'),
+					shadowUrl: require('../../markers/marker-shadow.png'),
+					iconAnchor: [12, 40],
+					popupAnchor: [2, -40]
+				});
 
-				boundsArr.push({lat, lng});
+				const marker = new LeafletMarker([lat, lng], {
+					icon: markerIcon
+				});
+
+				bounds.push({lat, lng});
 
 				if(m.popupText) marker.bindPopup(m.popupText);
 
-				featureGroup.addLayer(marker);
+				markersLayer.addLayer(marker);
 			});
 		}
 
-		// set the map bounds if multiple markers are present
-		let bounds;
-		if(markers.length > 1) {
-			bounds = new LeafletBounds(boundsArr);
-			map.fitBounds(bounds, {padding: [20, 20]});
-		}
+		this.setState({
+			markersLayer,
+			bounds
+		}, () => {
+			if(setBounds) this.adjustBounds();
+		});
+	}
 
-		return map;
+	adjustBounds() {
+		const { map, bounds } = this.state,
+			{ markers } = this.props;
+
+		if(markers.length > 1) {
+			map.fitBounds(
+				new LeafletBounds(bounds),
+				{padding: [20, 20]}
+			);
+		}
 	}
 
 	render() {
-		const { height } = this.props;
+		const { mapId } = this.state,
+			{ height, width } = this.props;
+
+		const style = {
+			height: `${height}px`
+		};
+
+		if(width) style.width = `${width}px`;
 
 		return (
-			<div id="map-container" style={{ height: `${height}px` }}></div>
+			<div id={`map-container-${mapId}`} style={style}></div>
 		);
 	}
 }
@@ -96,6 +142,7 @@ Map.propTypes = {
 	showZoomControls: PropTypes.bool,
 	zoom: PropTypes.number,
 	height: PropTypes.string,
+	width: PropTypes.string,
 	markers: PropTypes.arrayOf(PropTypes.shape({
 		latitude: PropTypes.number.isRequired,
 		longitude: PropTypes.number.isRequired,
