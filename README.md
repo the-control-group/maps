@@ -1,4 +1,4 @@
-# ui
+# maps
 Map kit for pubrec products, built on React
 
 ## Batteries not included
