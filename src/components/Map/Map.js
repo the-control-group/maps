@@ -52,17 +52,19 @@ class Map extends Component {
 	 */
 	createMap() {
 		const { mapId } = this.state,
-			{ latitude, longitude, showZoomControls, zoom, tiles } = this.props;
+			{ latitude, longitude, showZoomControls, zoom, tiles } = this.props,
+			parsedLat = parseFloat(latitude),
+			parsedLon = parseFloat(longitude);
 
-		if(!latitude || !longitude || !tiles) return null;
+		if(Number.isNaN(parsedLat) || Number.isNaN(parsedLon) || !tiles) return null;
 
 		// create the base map
 		const map = new LeafletMap(`map-container-${mapId}`, {
 			scrollWheelZoom: false,
 			zoomControl: showZoomControls
 		}).setView([
-			parseFloat(latitude),
-			parseFloat(longitude)
+			parsedLat,
+			parsedLon
 		], zoom);
 
 		// add the base tile layer
