@@ -52,7 +52,7 @@ class Map extends Component {
 	 */
 	createMap() {
 		const { mapId } = this.state,
-			{ latitude, longitude, showZoomControls, zoom, tiles } = this.props,
+			{ latitude, longitude, showZoomControls, zoom, tiles, enableDragging, enableTap  } = this.props,
 			parsedLat = parseFloat(latitude),
 			parsedLon = parseFloat(longitude);
 
@@ -61,7 +61,10 @@ class Map extends Component {
 		// create the base map
 		const map = new LeafletMap(`map-container-${mapId}`, {
 			scrollWheelZoom: false,
-			zoomControl: showZoomControls
+			zoomControl: showZoomControls,
+			// control dragging and tap in order to prevent scroll hijacking
+			tap: enableTap,
+			dragging: enableDragging
 		}).setView([
 			parsedLat,
 			parsedLon
@@ -154,6 +157,8 @@ Map.propTypes = {
 	latitude: PropTypes.number.isRequired,
 	longitude: PropTypes.number.isRequired,
 	showZoomControls: PropTypes.bool,
+	enableTap: PropTypes.bool,
+	enableDragging: PropTypes.bool,
 	zoom: PropTypes.number,
 	height: PropTypes.string,
 	width: PropTypes.string,
