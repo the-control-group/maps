@@ -58,6 +58,10 @@ class Map extends Component {
 
 		if(Number.isNaN(parsedLat) || Number.isNaN(parsedLon) || !tiles) return null;
 
+
+		if( enableDragging === undefined ) enableDragging = true;
+		if( enableTap === undefined ) enableTap = true;
+
 		// create the base map
 		const map = new LeafletMap(`map-container-${mapId}`, {
 			scrollWheelZoom: false,
