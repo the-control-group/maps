@@ -52,7 +52,7 @@ class Map extends Component {
 	 */
 	createMap() {
 		const { mapId } = this.state,
-			{ latitude, longitude, showZoomControls, zoom, tiles, enableDragging = true, enableTap = true  } = this.props,
+			{ latitude, longitude, showZoomControls, zoom, tiles, enableDragging, enableTap  } = this.props,
 			parsedLat = parseFloat(latitude),
 			parsedLon = parseFloat(longitude);
 
@@ -174,7 +174,9 @@ Map.propTypes = {
 Map.defaultProps = {
 	showZoomControls: true,
 	zoom: 5,
-	height: '300'
+	height: '300',
+	enableDragging: true,
+	enableTap: true
 };
 
 export default Map;
