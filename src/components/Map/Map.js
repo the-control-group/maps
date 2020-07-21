@@ -52,15 +52,11 @@ class Map extends Component {
 	 */
 	createMap() {
 		const { mapId } = this.state,
-			{ latitude, longitude, showZoomControls, zoom, tiles, enableDragging, enableTap  } = this.props,
+			{ latitude, longitude, showZoomControls, zoom, tiles, enableDragging = true, enableTap = true  } = this.props,
 			parsedLat = parseFloat(latitude),
 			parsedLon = parseFloat(longitude);
 
 		if(Number.isNaN(parsedLat) || Number.isNaN(parsedLon) || !tiles) return null;
-
-
-		if( enableDragging === undefined ) enableDragging = true;
-		if( enableTap === undefined ) enableTap = true;
 
 		// create the base map
 		const map = new LeafletMap(`map-container-${mapId}`, {
