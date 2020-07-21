@@ -174,7 +174,9 @@ Map.propTypes = {
 Map.defaultProps = {
 	showZoomControls: true,
 	zoom: 5,
-	height: '300'
+	height: '300',
+	enableDragging: true,
+	enableTap: true
 };
 
 export default Map;
