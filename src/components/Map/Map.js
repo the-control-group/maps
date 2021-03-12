@@ -45,6 +45,21 @@ class Map extends Component {
 			if(markersLayer) markersLayer.clearLayers();
 			this.addMarkers();
 		}
+
+		// adjust map if latitude or longitude changed
+		if(prevProps.latitude !== this.props.latitude || prevProps.longitude !== this.props.longitude) {
+			const bounds = [{lat: parseFloat(this.props.latitude), lng: parseFloat(this.props.longitude)}];
+			this.props.markers.forEach(m => {
+				const lat = parseFloat(m.latitude),
+					lng = parseFloat(m.longitude);
+
+				bounds.push({lat, lng});
+			});
+
+			this.setState({
+				bounds
+			}, this.adjustBounds);
+		}
 	}
 
 	/**
