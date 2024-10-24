@@ -38,16 +38,22 @@ class Map extends Component {
 	}
 
 	componentDidUpdate(prevProps) {
-		const { markersLayer } = this.state;
+		const { markersLayer, map } = this.state;
 
 		// reset markers if they are changed (for example, via a toggle switch)
 		if(prevProps.markers.length !== this.props.markers.length) {
 			if(markersLayer) markersLayer.clearLayers();
-			this.addMarkers();
 		}
 
 		// adjust map if latitude or longitude changed
 		if(prevProps.latitude !== this.props.latitude || prevProps.longitude !== this.props.longitude) {
+			// updating map view to new coordinates
+			if (map) {
+				map.setView([parseFloat(this.props.latitude), parseFloat(this.props.longitude)]);
+				// need to add markets to new coordinates
+				this.addMarkers();
+			}
+
 			const bounds = [{lat: parseFloat(this.props.latitude), lng: parseFloat(this.props.longitude)}];
 			this.props.markers.forEach(m => {
 				const lat = parseFloat(m.latitude),
